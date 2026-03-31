@@ -1,18 +1,20 @@
 import express from "express";
-import dotenv from "dotenv";
 import { ENV } from "./lib/env.js";
 import path from "path";
 import { connectDB } from "./lib/db.js";
 const __dirname = path.resolve();
+import cors from "cors";
+import { functions, inngest } from "./lib/inngest.js";
+import { serve } from "inngest/express";
 
 const app = express();
 
 console.log(ENV.PORT);
 
-// app.get("/", (req, res) => {
-//   res.status(200).json({ msg: "Backend API is running" });
-// });
-
+// middleware
+app.use(express.json());
+app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
+app.use("/api/inngest", serve({ client: inngest, functions }));
 app.get("/books", (req, res) => {
   res.status(200).json({ msg: "success from api book" });
 });
