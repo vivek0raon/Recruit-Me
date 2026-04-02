@@ -19,10 +19,9 @@ app.use(express.json());
 app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 app.use("/api/inngest", serve({ client: inngest, functions }));
 app.use(clerkMiddleware());
-app.unsubscribe("/api/chat", chatRoutes)
+app.use("/api/chat", chatRoutes)
 
 app.get("/health", (req, res) => {
-  req.auth;
   res.status(200).json({ msg: "success from api health" });
 });
 
