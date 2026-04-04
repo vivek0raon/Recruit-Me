@@ -6,8 +6,8 @@ import cors from "cors";
 import { functions, inngest } from "./lib/inngest.js";
 import { serve } from "inngest/express";
 import { clerkMiddleware } from "@clerk/express";
-import chatRoutes from "./routes/chatRoutes.js"
-
+import chatRoutes from "./routes/chatRoutes.js";
+import sessionRoutes from "./routes/sessionRoutes.js";
 
 const app = express();
 const __dirname = path.resolve();
@@ -19,12 +19,12 @@ app.use(express.json());
 app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 app.use("/api/inngest", serve({ client: inngest, functions }));
 app.use(clerkMiddleware());
-app.use("/api/chat", chatRoutes)
+app.use("/api/chat", chatRoutes);
+app.use("/api/sessions", sessionRoutes);
 
 app.get("/health", (req, res) => {
   res.status(200).json({ msg: "success from api health" });
 });
-
 
 // when we pass an array of middleware to express, express flattens it and execute it sequentially
 // next function is used to execute the next function in the app.get
