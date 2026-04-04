@@ -48,7 +48,7 @@ export async function getActiveSessions(_, res) {
   try {
     const sessions = await Session.find({ status: "active" })
       .populate("host", "name profileImage email clerkId")
-      .sort({ createAt: -1 })
+      .sort({ createdAt: -1 })
       .limit(20);
 
     res.status(200).json({ sessions });
@@ -103,7 +103,19 @@ export async function joinSession(req, res) {
     // check if session is already full - has a participant
 
     if (session.participant)
-      return res.status(404).json({ message: "Session is full" });
+      return res.status(409).json({ message: "Session is full" });
+
+    if (session.status !== "active") {
+      return res
+        .status(400)
+        .json({ message: "Cannot join a completed session" });
+    }
+
+    if (session.host.toString() === userId.toString()) {
+      return res
+        .status(400)
+        .json({ message: "Host cannot join their own session as participant" });
+    }
     session.participant = userId;
     await session.save();
 
@@ -137,16 +149,16 @@ export async function endSession(req, res) {
       return res.status(400).json({ message: "Session is already completed" });
     }
 
-    session.status = "completed";
-    await session.save();
-
     // delete stream video call
     const call = streamClient.video.call("default", session.callId);
     await call.delete({ hard: true });
 
     //delete stream chat channel
-    const channel = streamClient.channel("messaging", session.callId);
+    const channel = chatClient.channel("messaging", session.callId);
     await channel.delete({ hard: true });
+
+    session.status = "completed";
+    await session.save();
 
     res.status(200).json({ session, message: "Session ended successfully" });
   } catch (error) {
